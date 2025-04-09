@@ -1,30 +1,47 @@
-import { Link, useNavigate } from 'react-router-dom';
-import { UserIcon, HelpCircleIcon, ChartBar, Home, LogOut, Settings, Users } from 'lucide-react';
-import { useAuthStore } from '../pages/auth/store/authStore';
+import { Link, useNavigate, useLocation } from "react-router-dom";
+import {
+  UserIcon,
+  HelpCircleIcon,
+  ChartBar,
+  Home,
+  LogOut,
+  Settings,
+  Users,
+} from "lucide-react";
+import { useAuthStore } from "../pages/auth/store/authStore";
 
 const Sidebar = () => {
   const navigate = useNavigate();
-  const logout = useAuthStore(state => state.logout);
-  const user = useAuthStore(state => state.user);
+  const location = useLocation();
+  const logout = useAuthStore((state) => state.logout);
+  const user = useAuthStore((state) => state.user);
 
   const menuItems = [
-    { title: 'Dashboard', path: '/', icon: <ChartBar /> },
-    { title: 'Inicio', path: '/home', icon: <Home /> },
-    { title: 'Perfil', path: '/usuario', icon: <UserIcon /> },
-    { title: 'Ajustes', path: '/ajustes', icon: <Settings /> },
-    { title: 'Ayuda', path: '/ayuda', icon: <HelpCircleIcon /> },
+    { title: "Dashboard", path: "/", icon: <ChartBar size={20} /> },
+    { title: "Inicio", path: "/home", icon: <Home size={20} /> },
+    { title: "Perfil", path: "/usuario", icon: <UserIcon size={20} /> },
+    { title: "Ajustes", path: "/ajustes", icon: <Settings size={20} /> },
+    { title: "Ayuda", path: "/ayuda", icon: <HelpCircleIcon size={20} /> },
   ];
 
   // Menú adicional para administradores
   const adminMenuItems = [
-    { title: 'Gestionar Usuarios', path: '/admin/users', icon: <Users /> },
+    { title: "Gestionar Usuarios", path: "/admin/users", icon: <Users size={20} /> },
   ];
 
   const handleLogout = () => {
     logout();
-    navigate('/login');
+    navigate("/login");
   };
-  
+
+  // Función para determinar si un elemento está activo
+  const isActive = (path: string) => {
+    if (path === "/" && location.pathname === "/") {
+      return true;
+    }
+    return location.pathname === path || location.pathname.startsWith(path + "/");
+  };
+
   return (
     <>
       {/* Menú móvil inferior */}
@@ -34,7 +51,7 @@ const Sidebar = () => {
             <Link
               key={item.path}
               to={item.path}
-              className="p-2 text-cidit-teal hover:text-cidit-cyan"
+              className={`p-2 ${isActive(item.path) ? "text-cidit-teal" : "text-gray-500 hover:text-black"}`}
             >
               {item.icon}
             </Link>
@@ -42,65 +59,80 @@ const Sidebar = () => {
         </nav>
       </div>
 
-      {/* Sidebar flotante para desktop */}
-      <div className="hidden lg:block fixed top-1/2 left-4 -translate-y-1/2 p-4 rounded-xl bg-white shadow-lg text-slate-700 z-50">
-        <nav className="flex flex-col gap-4">
-          {menuItems.map((item) => (
-            <div key={item.path} className="relative group">
+      {/* Sidebar para desktop (versión con texto) */}
+      <div className="hidden lg:flex flex-col h-full">
+        <nav className="flex flex-col w-full h-full space-y-1 py-6">
+          {menuItems.map((item) => {
+            const active = isActive(item.path);
+            return (
               <Link
+                key={item.path}
                 to={item.path}
-                className="flex items-center p-2 hover:bg-gray-100 rounded-lg transition-colors duration-200"
+                className={`flex items-center px-4 py-3 ${
+                  active ? "text-black font-semibold" : "text-gray-600 hover:text-black"
+                } rounded-md group relative transition-all duration-200 overflow-hidden`}
               >
-                <span className="text-cidit-teal">{item.icon}</span>
+                <div className={`absolute inset-0 ${
+                  active ? "opacity-10 mx-2" : "mx-2 opacity-0 group-hover:opacity-20"
+                } bg-gradient-to-t from-[#1daaba] via-[#02c577] to-[#b1f750] rounded-md transition-opacity duration-200`}></div>
+                <span className={`mr-3 ${
+                  active ? "text-black" : "text-gray-500 group-hover:text-black"
+                } relative z-10`}>{item.icon}</span>
+                <span className={`${
+                  active ? "font-semibold" : "font-medium group-hover:font-semibold"
+                } text-sm relative z-10`}>
+                  {item.title}
+                </span>
               </Link>
-              {/* Tooltip */}
-              <div className="absolute left-full ml-2 px-2 py-1 bg-gray-800 text-white text-sm rounded-md 
-                            opacity-0 invisible group-hover:opacity-100 group-hover:visible 
-                            transition-all duration-200 whitespace-nowrap">
-                {item.title}
-              </div>
-            </div>
-          ))}s
+            );
+          })}
 
           {/* Menú de administración */}
-          {user?.role === 'admin' && (
+          {user?.role === "admin" && (
             <>
-              <div className="border-t pt-4 mt-4">
-                <div className="text-xs text-gray-500 mb-2 px-2">Administración</div>
-                {adminMenuItems.map((item) => (
-                  <div key={item.path} className="relative group">
-                    <Link
-                      to={item.path}
-                      className="flex items-center p-2 hover:bg-gray-100 rounded-lg transition-colors duration-200"
-                    >
-                      <span className="text-cidit-teal">{item.icon}</span>
-                    </Link>
-                    <div className="absolute left-full ml-2 px-2 py-1 bg-gray-800 text-white text-sm rounded-md 
-                                  opacity-0 invisible group-hover:opacity-100 group-hover:visible 
-                                  transition-all duration-200 whitespace-nowrap">
-                      {item.title}
-                    </div>
-                  </div>
-                ))}
+              <div className="border-t border-gray-200 my-3"></div>
+              <div className="px-4 mb-2">
+                <span className="text-xs font-medium text-gray-500 uppercase tracking-wider">Administración</span>
               </div>
+              {adminMenuItems.map((item) => {
+                const active = isActive(item.path);
+                return (
+                  <Link
+                    key={item.path}
+                    to={item.path}
+                    className={`flex items-center px-4 py-3 ${
+                      active ? "text-black font-semibold" : "text-gray-600 hover:text-black"
+                    } rounded-md group relative transition-all duration-200 overflow-hidden`}
+                  >
+                    <div className={`absolute inset-0 ${
+                      active ? "opacity-10 mx-2" : "mx-2 opacity-0 group-hover:opacity-20"
+                    } bg-gradient-to-t from-[#1daaba] via-[#02c577] to-[#b1f750] rounded-md transition-opacity duration-200`}></div>
+                    <span className={`mr-3 ${
+                      active ? "text-black" : "text-gray-500 group-hover:text-black"
+                    } relative z-10`}>{item.icon}</span>
+                    <span className={`${
+                      active ? "font-semibold" : "font-medium group-hover:font-semibold"
+                    } text-sm relative z-10`}>
+                      {item.title}
+                    </span>
+                  </Link>
+                );
+              })}
             </>
           )}
           
-          {/* Botón de cerrar sesión (solo en desktop) */}
-          <div className="relative group mt-4 pt-4 border-t">
+          {/* Botón de cerrar sesión */}
+          <div className="mt-auto pt-6 px-4">
             <button
               onClick={handleLogout}
-              className="flex items-center p-2 hover:bg-gray-100 rounded-lg transition-colors duration-200 w-full"
+              className="flex items-center w-full px-4 py-3 text-red-500 hover:text-red-700 rounded-md group relative transition-all duration-200 overflow-hidden"
             >
-              <span className="text-red-500">
-                <LogOut size={20} />
+              <div className="absolute  mx-2 inset-0 opacity-0 bg-gradient-to-t from-[#ffcccb] via-[#ff8080] to-[#ff6666] rounded-md group-hover:opacity-20 transition-opacity duration-200"></div>
+              <LogOut size={20} className="mr-3 relative z-10" />
+              <span className="font-medium text-sm group-hover:font-semibold relative z-10">
+                Cerrar Sesión
               </span>
             </button>
-            <div className="absolute left-full ml-2 px-2 py-1 bg-gray-800 text-white text-sm rounded-md 
-                          opacity-0 invisible group-hover:opacity-100 group-hover:visible 
-                          transition-all duration-200 whitespace-nowrap">
-              Cerrar Sesión
-            </div>
           </div>
         </nav>
       </div>
@@ -108,4 +140,4 @@ const Sidebar = () => {
   );
 };
 
-export default Sidebar; 
+export default Sidebar;

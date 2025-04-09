@@ -12,7 +12,7 @@ const Settings = () => {
   };
 
   return (
-    <div className="container mx-auto px-4 pt-20">
+    <div className="container mx-auto">
       <h1 className="text-2xl font-bold mb-6">Ajustes</h1>
 
       {/* Opción de cerrar sesión (visible solo en móvil) */}
